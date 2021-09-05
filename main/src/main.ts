@@ -1,33 +1,57 @@
-import { LifeCycleFn } from "qiankun";
 /*
  * @Author: raoqidi
- * @Date: 2021-07-01 10:56:40
+ * @Date: 2021-07-02 11:40:07
  * @LastEditors: raoqidi
- * @LastEditTime: 2021-07-01 11:43:06
+ * @LastEditTime: 2021-08-30 17:10:39
  * @Description: please add a description to the file
  * @FilePath: /qiankun-demo/main/src/main.ts
  */
-import Vue from "vue";
-import App from "./App.vue";
-import router from "./router";
-import store from "./store";
-import { registerMicroApps, start } from "qiankun";
-import microApps from "./micro-app";
+import { initGlobalState, MicroAppStateActions, registerMicroApps, start } from 'qiankun';
+import Vue from 'vue';
+import App from './App.vue';
+import microApps from './micro-app';
+import router from './router';
+import store from './store';
 
 Vue.config.productionTip = false;
 
-new Vue({
+const instance = new Vue({
   router,
   store,
-  render: (h) => h(App),
-}).$mount("#app");
+  render: h => h(App)
+}).$mount('#app');
 
-registerMicroApps(microApps, {
-  beforeLoad: (app): any =>
-    console.log("before load app.name =====>", app.name),
-  beforeMount: [(app): any => console.log("before mount", app.name)],
-  afterMount: [(app): any => console.log("after mount", app.name)],
-  afterUnmount: [(app): any => console.log("after unmount", app.name)],
+function loader(loading: boolean) {
+  console.log(instance);
+  if (instance && instance.$children) {
+    // App.vue
+    (instance.$children[0] as any).isLoading = loading;
+  }
+}
+const apps = microApps.map(item => {
+  return {
+    ...item,
+    loader
+  };
 });
 
-start();
+registerMicroApps(apps, {
+  beforeLoad: app => Promise.resolve(console.log('before load app.name =====>', app.name)),
+  beforeMount: [
+    app =>
+      Promise.resolve(() => {
+        console.log('before mount', app.name);
+      })
+  ],
+  afterMount: [
+    app =>
+      Promise.resolve(() => {
+        console.log('after mount', app.name);
+      })
+  ],
+  afterUnmount: [app => Promise.resolve(console.log('after unmount', app.name))]
+});
+
+// start();
+// start({ sandbox: { strictStyleIsolation: true } }); // 模式2
+start({ sandbox: { experimentalStyleIsolation: true } });

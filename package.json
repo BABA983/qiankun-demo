@@ -1,0 +1,36 @@
+{
+  "name": "qiankun-demo",
+  "version": "1.0.0",
+  "description": "qiankun框架demo搭建",
+  "main": "index.js",
+  "scripts": {
+    "clone:all": "bash ./clone-all.sh",
+    "start": "npm-run-all --parallel start:*",
+    "start:main": "cd main && npm run serve",
+    "start:vue2": "cd vue2 && npm run serve",
+    "start:vue3": "cd vue3 && npm run serve",
+    "start:react17": "cd react17 && npm run start",
+    "install": "npm-run-all --serial install:*",
+    "install:common": "cd common && rm -rf node_modules && npm i",
+    "install:main": "cd main && rm -rf node_modules && npm i",
+    "install:vue2": "cd vue2 && rm -rf node_modules && npm i",
+    "install:vue3": "cd vue3 && rm -rf node_modules && npm i",
+    "install:react17": "cd react17 && rm -rf node_modules && npm i",
+    "uninstall": "npm-run-all --parallel uninstall:*",
+    "uninstall:main": "cd main && rm -rf node_modules",
+    "uninstall:vue2": "cd vue2 && rm -rf node_modules",
+    "uninstall:vue3": "cd vue3 && rm -rf node_modules",
+    "uninstall:react17": "cd react17 && rm -rf node_modules",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com.cnpmjs.org/SKADaddy/qiankun-demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}
