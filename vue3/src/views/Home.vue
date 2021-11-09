@@ -2,7 +2,7 @@
  * @Author: raoqidi
  * @Date: 2021-08-09 15:18:22
  * @LastEditors: raoqidi
- * @LastEditTime: 2021-08-10 10:06:53
+ * @LastEditTime: 2021-09-11 13:59:11
  * @Description: please add a description to the file
  * @FilePath: /qiankun-demo/vue3/src/views/Home.vue
 -->
@@ -21,6 +21,12 @@ export default defineComponent({
   name: 'Home',
   components: {
     HelloWorld,
+  },
+  created() {
+    console.log('vue3 created');
+  },
+  mounted() {
+    console.log('vue3 mounted');
   },
 });
 </script>

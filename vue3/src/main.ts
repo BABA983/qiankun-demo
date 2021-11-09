@@ -2,14 +2,14 @@
  * @Author: raoqidi
  * @Date: 2021-08-09 15:18:22
  * @LastEditors: raoqidi
- * @LastEditTime: 2021-09-05 15:26:23
+ * @LastEditTime: 2021-09-11 18:13:10
  * @Description: please add a description to the file
  * @FilePath: /qiankun-demo/vue3/src/main.ts
  */
 import './public-path';
 import Vue, { createApp } from 'vue';
 import App from './App.vue';
-import './registerServiceWorker';
+// import './registerServiceWorker';
 import router from './router';
 import store from './store';
 // import { store as commonStore } from 'common';

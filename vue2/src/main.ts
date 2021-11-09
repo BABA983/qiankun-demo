@@ -2,7 +2,7 @@
  * @Author: raoqidi
  * @Date: 2021-07-01 11:59:36
  * @LastEditors: raoqidi
- * @LastEditTime: 2021-09-05 19:12:53
+ * @LastEditTime: 2021-09-11 20:20:48
  * @Description: please add a description to the file
  * @FilePath: /qiankun-demo/vue2/src/main.ts
  */
@@ -73,6 +73,7 @@ export async function mount(props: any) {
   console.log('[vue2] props from main framework', props);
   // commonStore.globalRegister(store, props);
   globalRegister(store, props);
+  Vue.prototype.$parentProps = props;
   render(props);
   props.onGlobalStateChange((state: any, prev: any) => {
     console.log('globalStateChange的回调...');

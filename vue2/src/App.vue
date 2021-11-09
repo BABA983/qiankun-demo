@@ -2,7 +2,7 @@
  * @Author: raoqidi
  * @Date: 2021-07-01 11:59:36
  * @LastEditors: raoqidi
- * @LastEditTime: 2021-09-05 15:35:22
+ * @LastEditTime: 2021-09-11 21:02:19
  * @Description: please add a description to the file
  * @FilePath: /qiankun-demo/vue2/src/App.vue
 -->
@@ -35,7 +35,9 @@
         </template>
       </el-dialog>
     </div>
-    <router-view />
+    <keep-alive :include="loadedRoute">
+      <router-view />
+    </keep-alive>
   </div>
 </template>
 
@@ -47,7 +49,26 @@ export default {
       isShowDialog: false,
       inputVal: '',
       menuName: '',
+      loadedRoute: [],
     };
+  },
+  mounted() {
+    console.log('====================================');
+    console.log(this.$parentProps);
+    console.log('====================================');
+    if (window.__POWERED_BY_QIANKUN__) {
+      this.$parentProps.onGlobalStateChange((state) => {
+        console.log(state['vue2']);
+        const { childRoute } = state['vue2'];
+        const loadedRoutes = childRoute.map((item) =>
+          this.$router.resolve(item)
+        );
+        console.log(loadedRoutes);
+        const loadedRouteNames = loadedRoutes.map((item) => item.route.name);
+        console.log(loadedRouteNames);
+        this.loadedRoute = loadedRouteNames;
+      }, true);
+    }
   },
   computed: {
     isSubApp() {

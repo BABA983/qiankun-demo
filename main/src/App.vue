@@ -2,7 +2,7 @@
  * @Author: raoqidi
  * @Date: 2021-07-01 10:56:40
  * @LastEditors: raoqidi
- * @LastEditTime: 2021-09-05 19:58:19
+ * @LastEditTime: 2021-09-11 18:12:09
  * @Description: please add a description to the file
  * @FilePath: /qiankun-demo/main/src/App.vue
 -->
@@ -13,14 +13,10 @@
         <MenuItem v-for="item in menu" :index="item.value" :key="item.value">
           <template #title>{{ item.name }}</template>
         </MenuItem>
-        <!-- <MenuItem><a href="/">main</a></MenuItem>
-        <MenuItem><router-link to="/vue2">vue2</router-link></MenuItem>
-        <MenuItem><router-link to="/vue3">vue3</router-link></MenuItem>
-        <MenuItem><router-link to="/vite-vue3">vite-vue3</router-link></MenuItem> -->
       </Menu>
     </Aside>
     <Main id="container">
-      <Tabs type="card" v-model="activeTab" closable>
+      <Tabs type="card" v-model="activeTab" closable @tab-remove="removeTab" @tab-click="switchTab">
         <TabPane
           v-for="item in tabs"
           :key="item.value"
@@ -34,8 +30,6 @@
         :id="item.container.slice(1)"
         v-show="$route.path.startsWith(item.prefixPath)"
       ></div>
-      <!-- <el-button @click="$router.push('/')">home</el-button>
-      <el-button @click="$router.push('/about')">about</el-button> -->
       <keep-alive>
         <router-view></router-view>
       </keep-alive>
@@ -46,7 +40,6 @@
 <script>
 import {
   Loading,
-  // Button,
   Container,
   Aside,
   Menu,
@@ -57,10 +50,12 @@ import {
 } from 'common/node_modules/element-ui';
 import 'common/node_modules/element-ui/lib/theme-chalk/index.css';
 import apps from './micro-app';
+import { loadMicroApp, initGlobalState } from 'qiankun';
+// 初始化 state
+const actions = initGlobalState({});
 export default {
   name: 'App',
   components: {
-    // ElButton: Button,
     Container,
     Aside,
     Menu,
@@ -71,14 +66,12 @@ export default {
   },
   data() {
     return {
-      isLoading: true,
-      loadingInstance: null,
       activeTab: '',
       tabs: [],
       loadedApp: {}, // 已加载的微应用
       menu: [
         { name: '主应用的about', value: '/about' },
-        { name: 'vue2的home', value: '/vue2/' },
+        { name: 'vue2的home', value: '/vue2/home' },
         { name: 'vue2的about', value: '/vue2/about' },
         { name: 'vue3的home', value: '/vue3/' },
         { name: 'vue3的about', value: '/vue3/about' },
@@ -89,45 +82,78 @@ export default {
   created() {
     console.log(Loading);
   },
+  mounted() {
+    // 主应用第一次进来时 '/'
+    let { fullPath } = this.$route;
+    const { pathname } = window.location;
+    // 主应用的路由页面
+    if (fullPath === '/' && pathname !== '/') {
+      fullPath = pathname;
+    }
+    this.handleSelectMenu(fullPath);
+  },
+  // mounted() {},
   methods: {
     handleSelectMenu(path) {
       console.log(path);
       if (this.activeTab === path) return;
+      console.log('====================================');
+      console.log(123123);
+      console.log('====================================');
       const existTab = this.tabs.find(item => item.value === path);
       if (existTab) {
         this.activeTab = existTab.value;
       } else {
         // 先判断是子应用还是主应用，再判断子应用是否已加载
         const microApp = this.microApps.find(item => path.includes(item.prefixPath));
-      }
-    }
-  },
-  watch: {
-    isLoading: {
-      // immediate: true,
-      handler(val) {
-        // console.log('object-=-=-=');
-        // console.log(this);
-        if (val) {
-          this.$nextTick(() => {
-            this.loadingInstance = Loading.service({
-              // target: '#app',
-              text: '加载中...',
-              background: 'rgba(255, 255, 255, 0.7)',
-              customClass: 'loading'
-            });
-          });
-          console.log('loading...');
-        } else {
-          // console.log(this.loadingInstance);
-          // console.log('close...');
-          this.$nextTick(() => {
-            setTimeout(() => {
-              this.loadingInstance?.close();
-            }, 1000);
-          });
+        if (microApp) {
+          const childPath = path.replace(microApp.prefixPath, '');
+          // 没有加载过
+          if (!this.loadedApp[microApp.name]) {
+            const app = loadMicroApp(microApp);
+            this.loadedApp[microApp.name] = {
+              app,
+              childRoute: []
+            };
+          }
+          this.loadedApp[microApp.name].childRoute.push(childPath);
+          actions.setGlobalState(this.loadedApp);
+        }
+        const currentMenu = this.menu.find(item => item.value === path);
+        if (currentMenu) {
+          this.tabs.push(currentMenu);
+          this.activeTab = currentMenu.value;
         }
       }
+    },
+    removeTab(tab) {
+      const microApp = this.microApps.find(item => tab.includes(item.prefixPath));
+      if (microApp) {
+        const childPath = tab.replace(microApp.prefixPath, '');
+        const childRouteIndex = this.loadedApp[microApp.name].childRoute.indexOf(childPath);
+        this.loadedApp[microApp.name].childRoute.splice(childRouteIndex, 1);
+        actions.setGlobalState(this.loadedApp);
+
+        // 再当前微应用的页面是否已全部关闭
+        if (this.loadedApp[microApp.name].childRoute.length === 0) {
+          this.loadedApp[microApp.name].app.unmount();
+          this.loadedApp[microApp.name] = null;
+        }
+      }
+      const deleteIndex = this.tabs.findIndex(item => item.value === tab);
+      this.tabs.splice(deleteIndex, 1);
+      if (deleteIndex > 0 && this.tabs.length > 0) {
+        console.log('haha');
+        console.log('====================================');
+        console.log(this.tabs[deleteIndex - 1].value);
+        console.log('====================================');
+        this.handleSelectMenu(this.tabs[deleteIndex - 1].value);
+        this.$router.push(this.tabs[deleteIndex - 1].value);
+      }
+    },
+    switchTab(tab) {
+      if (tab.name === this.$route.path) return;
+      this.$router.push(tab.name);
     }
   },
   computed: {
